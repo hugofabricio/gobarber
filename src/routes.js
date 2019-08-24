@@ -1,43 +1,42 @@
-const express = require("express");
-const multerConfig = require("./config/multer");
-const upload = require("multer")(multerConfig);
-const routes = express.Router();
+import { Router } from 'express';
 
-const authMiddleware = require("./app/middlewares/auth");
-const guestMiddleware = require("./app/middlewares/guest");
+import multer from 'multer';
+import multerConfig from './config/multer';
 
-const SessionController = require("./app/controllers/SessionController");
-const UserController = require("./app/controllers/UserController");
-const DashboardController = require("./app/controllers/DashboardController");
-const FileController = require("./app/controllers/FileController");
-const AppointmentController = require("./app/controllers/AppointmentController");
-const AvailableController = require("./app/controllers/AvailableController");
-const ScheduleController = require("./app/controllers/ScheduleController");
+import UserController from './app/controllers/UserController';
+import SessionController from './app/controllers/SessionController';
+import FileController from './app/controllers/FileController';
+import ProviderController from './app/controllers/ProviderController';
+import AppointmentController from './app/controllers/AppointmentController';
+import ScheduleController from './app/controllers/ScheduleController';
+import NotificationController from './app/controllers/NotificationController';
+import AvailableController from './app/controllers/AvailableController';
 
-routes.use((req, res, next) => {
-  res.locals.flashSucess = req.flash("success");
-  res.locals.flashError = req.flash("error");
+import authMiddleware from './app/middlewares/auth';
 
-  return next();
-});
+const routes = new Router();
+const upload = multer(multerConfig);
 
-routes.get("/files/:file", FileController.show);
+routes.get('/', (req, res) => res.json({ message: 'Hello world!' }));
 
-routes.get("/", guestMiddleware, SessionController.create);
-routes.post("/signin", SessionController.store);
-routes.get("/signup", guestMiddleware, UserController.create);
-routes.post("/signup", upload.single("avatar"), UserController.store);
+routes.post('/users', UserController.store);
+routes.post('/sessions', SessionController.store);
 
-routes.get("/app/logout", SessionController.destroy);
+routes.use(authMiddleware);
+routes.put('/users', UserController.update);
 
-routes.use("/app", authMiddleware);
-routes.get("/app/dashboard", DashboardController.index);
+routes.get('/providers', ProviderController.index);
+routes.get('/providers/:providerId/available', AvailableController.index);
 
-routes.get("/app/appointments/new/:provider", AppointmentController.create);
-routes.post("/app/appointments/new/:provider", AppointmentController.store);
+routes.get('/appointments', AppointmentController.index);
+routes.post('/appointments', AppointmentController.store);
+routes.delete('/appointments/:id', AppointmentController.delete);
 
-routes.get("/app/available/:provider", AvailableController.index);
+routes.get('/schedule', ScheduleController.index);
 
-routes.get("/app/schedules", ScheduleController.index);
+routes.get('/notifications', NotificationController.index);
+routes.put('/notifications/:id', NotificationController.update);
 
-module.exports = routes;
+routes.post('/files', upload.single('file'), FileController.store);
+
+export default routes;

@@ -1,21 +1,16 @@
-const path = require("path");
+import File from '../models/File';
 
 class FileController {
-  show(req, res) {
-    const { file } = req.params;
+  async store(req, res) {
+    const { originalname: name, filename: path } = req.file;
 
-    const filePath = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "..",
-      "tmp",
-      "uploads",
-      file
-    );
+    const file = await File.create({
+      name,
+      path,
+    });
 
-    return res.sendFile(filePath);
+    return res.json(file);
   }
 }
 
-module.exports = new FileController();
+export default new FileController();
